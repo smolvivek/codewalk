@@ -5,93 +5,86 @@
 Test application, never recall.
 
 - Bad: "What does API stand for?"
-- Good: "A user reports stale data after switching pages. Based on what you just
-  saw about the cache module, where would you look first?"
+- Good: "A user reports stale data after switching pages. Based on the cache module
+  you just read, where would you look first?"
 
-Each quiz question should be answerable only by someone who understood the
-*mechanism* just taught, not someone who memorized a term from the paragraph above
-it. Multiple choice is fine; include at least one plausible wrong answer that
-reflects a common real misunderstanding of the mechanism (not a joke answer).
+A question should be answerable only by someone who understood the mechanism, not by
+someone who remembered a term from the paragraph above it. Multiple choice is fine.
+Include at least one wrong answer that reflects a common, real misunderstanding of the
+mechanism. No joke answers.
 
-Give immediate feedback with a one-line explanation of *why*, tied back to the
-specific code/diagram the module just showed — not a generic "correct!"/"try again."
+Give feedback right away, in one line that says why, tied to the code or diagram the
+module just showed. "Correct" and "try again" are not feedback.
 
-A wrong answer doesn't just reveal the right one. Follow it with one simpler,
-more concrete question that isolates the specific misunderstanding the wrong
-choice implied, before moving on — a real second attempt, not just an answer key.
+A wrong answer should not just reveal the right one. Follow it with one simpler, more
+concrete question that isolates the misunderstanding the wrong choice implied. That
+gives the reader a real second attempt before moving on.
 
 ## Animated visualizations
 
-Three recurring patterns. A course should use more than one of them — reaching
-for the same pattern every time is the animated equivalent of a recycled metaphor.
+There are three patterns. Use more than one in a walkthrough, because repeating one
+pattern is the animation version of a recycled metaphor.
 
-1. **Data flow** — an element (dot, packet, request) visibly moves through labeled
-   stages, pausing briefly at each one with a one-line caption. Good for pipelines,
-   middleware chains, request lifecycles.
-2. **Component conversation** — chat-bubble exchange between two or more named
-   components, each bubble tied to a real function call (shown on tap/hover: the
-   actual line of code that message represents). Good for anything shaped like
-   request/response, pub/sub, or API calls between services.
-3. **Architecture build-up** — a diagram that constructs itself piece by piece as
-   the module's text progresses (scroll-linked or step-linked), rather than
-   appearing all at once. Good for "here's how the pieces fit together" modules.
+1. **Data flow.** An element (a dot, a packet, a request) moves through labeled stages
+   and pauses at each with a one-line caption. Suits pipelines, middleware chains, and
+   request lifecycles.
+2. **Component conversation.** A chat-style exchange between two or more named
+   components. Each bubble shows, on tap or hover, the actual line of code it stands
+   for. Suits request and response, pub/sub, and API calls between services.
+3. **Architecture build-up.** A diagram that assembles itself piece by piece as the
+   module text progresses, linked to scroll or to steps, instead of appearing all at
+   once. Suits modules about how the pieces fit together.
 
-**Trigger on scroll, not on load.** Wire every animation to an IntersectionObserver
-(or equivalent) on its own module, not a fixed timer from page load — a learner
-who's still reading the intro when a module three screens down autoplays never
-sees it happen. Each animation plays once when its module enters view, and is
-always replayable (a small restart control) and skippable (reduced motion /
-"skip to end state" always available).
+**Trigger on scroll, not on load.** Attach every animation to an IntersectionObserver
+on its own module. A timer that starts at page load means a module three screens down
+plays before anyone sees it. Each animation plays once when its module scrolls into
+view. It must be replayable through a small restart control, and skippable to its end
+state.
 
 ## Shape icons
 
-Each module carries a small glyph next to its title marking the metaphor-bank
-shape it teaches (gate, ledger, pipeline, queue, cache, broadcast, lookup,
-boundary, scheduler — see `metaphor-bank.md`). This is what turns "no recycled
-metaphors" from something explained in the text into something the learner can
-*see* repeating — the point isn't the icon, it's that by module four they
-should be able to guess a new module's shape from the icon before reading a
-word of it.
+Each module has a small inline SVG icon next to its title for the shape it teaches:
+gate, ledger, pipeline, queue, cache, broadcast, lookup, boundary, or scheduler (see
+`metaphor-bank.md`). The icon makes the no-repeat rule visible. By the fourth module
+the reader should be able to guess a new module's shape from the icon before reading
+any of it.
 
-## Code ↔ plain-English blocks
+## Code and English blocks
 
-- Code snippet is an exact, unmodified excerpt from the real file, with a visible
-  file path + line numbers so the learner can find it themselves.
-- Plain-English translation sits beside it, written at the level the learner's
-  stated background calls for (see `personalization.md`) — don't explain syntax a
-  self-identified-experienced learner already knows; do explain it for someone who
-  said they're new to the language.
-- Where useful, loosely align specific lines of code to specific sentences of
-  explanation (a thin connecting rule or matched background tint is enough — don't
-  over-engineer exact line-to-line mapping where the explanation reasonably spans
-  several lines).
-- The file path above each snippet links to that exact file and line range on
-  the source host (GitHub blob URL with a line anchor, when the repo has a
-  remote) — one click from "what does this mean" to "show me the real file,"
-  not just a label.
+- The code is an exact, unmodified excerpt from the real file, with the file path and
+  line numbers shown so the reader can find it.
+- The plain English sits beside it, pitched at the background the reader gave at
+  intake (see `personalization.md`). Do not explain syntax to an experienced reader.
+  Do explain it to someone who said they are new to the language.
+- Where it helps, line up specific lines of code with specific sentences using a thin
+  connecting rule or a matching background tint. Exact line-for-line mapping is not
+  needed when one explanation reasonably covers several lines.
+- The file path above each snippet links to that file and line range on the source
+  host (a GitHub blob URL with a line anchor, when the repo has a remote). The reader
+  is one click from the explanation to the real file.
 
 ## Glossary tooltips
 
-One definition per term, written once, referenced via a shared glossary object:
+Write each definition once, in a shared object:
 
 ```js
 const glossary = {
-  "middleware": "A function that runs on every request before it reaches your route handler — like a checkpoint every request passes through.",
+  "middleware": "A function that runs on every request before it reaches your route handler, like a checkpoint every request passes through.",
   // ...
 };
 ```
 
-Every occurrence of a glossary term in body text gets the hover/tap treatment; don't
-redefine a term inline in prose once it's in the glossary — link to the glossary
-behavior instead, so the explanation is maintained in one place.
+Every occurrence of a glossary term in body text gets the hover or tap tooltip. Once a
+term is in the glossary, do not redefine it inline. That keeps each explanation in one
+place.
 
-## Branch switcher (new)
+## Branch switcher
 
-A persistent small control (not a full settings panel) in the top bar: Debug /
-Extend / Orient. Switching:
-- Jumps to that path's starting module.
-- Shared modules referenced by more than one path render once; the switcher just
-  changes which module sequence is "active" / highlighted in the progress bar —
-  don't duplicate a shared module's HTML per path.
-- Switching paths never loses the learner's progress on the path they're leaving —
-  it's just a different lens on the same material, not a reset.
+A small persistent control in the top bar, not a settings panel: Debug, Extend,
+Orient. Switching does three things:
+
+- It jumps to the start of that path.
+- Modules shared between paths render once. The switcher changes which sequence is
+  active in the progress bar. It does not duplicate the module's HTML.
+- It keeps the reader's progress on the path they left. It changes the view of the
+  same material and does not reset anything.

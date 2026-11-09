@@ -1,72 +1,76 @@
 # codewalk
 
-**Turn any codebase into a personal, interactive course — one HTML file, zero dependencies.**
+A Claude Code skill that turns a codebase into an interactive walkthrough: one HTML file, no dependencies, built around what you are trying to do with the code.
 
-You built something with an AI agent. It works. You don't know *how* it works — and the next time it breaks, you're stuck in a loop asking the agent to fix what it broke.
+You built something with an AI agent and it works, but you can't say how. When it breaks, you end up asking the same agent to repair what it broke. Or you inherited a repo where the README says "run `npm start`" and that is all anyone knows.
 
-Codewalk closes that gap. Point it at a repo, tell it what you're trying to do, and get back a single self-contained page that teaches you how the code actually works — with scroll-driven animations, branching paths, real code linked to its source, and quizzes that test whether you *get it*, not whether you memorized it.
+Codewalk reads the repo, asks what you need from it, and builds a single page that explains how the code works. It has animations that run as you scroll, real code beside plain-English explanations, and quizzes that check whether you can apply what you read.
 
-<p align="center">
-  <img src="assets/features.png" alt="What codewalk adds: personalized intake, diff mode, structured metaphor bank, branching paths, and narration" width="680">
-</p>
+The output opens with a double-click, works offline, and needs no server.
 
----
+## What makes it different
 
-## What you get
+**It asks first.** Before building anything it asks four questions: what you are here to do, what you already know, how much time you have, and whether you want narration. Someone debugging gets different modules than someone getting oriented.
 
-A single `.course.html` file. Inline CSS, inline JS, no CDN, no build step. Double-click to open. Works offline, on any device.
+**It updates instead of rebuilding.** When the code changes, codewalk compares the repo with your last walkthrough. A small change gets a short addendum. A rewrite gets a full rebuild, with the reason. No change means it tells you and stops. Concepts you missed in the quizzes are tested again.
 
-Inside it: scroll-based modules with a progress bar, code snippets copied verbatim from the repo and linked to the exact line on GitHub, side-by-side code-to-plain-English translations, animated visualizations triggered by scroll (not timers), quizzes with real follow-up questions on wrong answers, a persistent branch switcher (Debug / Extend / Orient), domain-matched visuals instead of the default gradient-and-sans-serif AI look, and a closing section that names what was left out and why.
+**Its metaphors come from a system.** Every concept in a codebase has a shape: gate, queue, cache, broadcast, lookup, pipeline, boundary, ledger, or scheduler. Codewalk classifies the shape first and then picks a metaphor from the codebase's own domain. A motorcycle news site gets pit-lane metaphors and a kitchen app gets prep-station ones. The same shape never gets the same metaphor twice, and each module carries a small icon for its shape.
 
-A `.course.json` sidecar saves state — come back after the code changes and codewalk diffs the repo instead of rebuilding from scratch.
+**It has three paths.** Debug traces a failure from symptom to cause. Extend shows the pattern you are about to copy and where new code goes. Orient gives you the whole map. Modules shared between paths render once, and switching paths keeps your progress.
 
----
+**It can narrate.** If you opt in, it writes a script and a sync map tied to scroll position, written to be heard and not just read. Any text-to-speech tool can play it.
 
 ## How it works
 
 <p align="center">
-  <img src="assets/flow.png" alt="Generation flow: intake, diff check, map the codebase, route into branch, draw metaphors, build HTML, save state" width="580">
+  <img src="assets/flow.png" alt="The generation flow: intake, diff check, map the codebase, route into a branch, draw metaphors, build the HTML, save state" width="520">
 </p>
 
-Codewalk is a [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skill — structured instructions that guide an agent through generation. It reads your codebase, asks four short questions (goal, stack, time, narration preference), traces one real user action end-to-end, classifies every concept by its underlying shape (Gate, Pipeline, Ledger, Cache, Queue, Boundary, Broadcast, Lookup, Scheduler), picks domain-flavored metaphors with no repeats, and builds the course around your stated intent.
+The skill reads your codebase, traces one real user action from start to finish, and picks 5 to 9 concepts from that trace. It builds the page around the path you chose and writes a small JSON file next to the HTML so the next run can compare against it.
 
-Three paths through every course: **Orient** (understand the system), **Debug** (trace a failure), **Extend** (add a feature). Same concept map, different ordering, depth, and tone. Shared modules render once; switching paths doesn't reset your progress.
+Everything it produces follows a few fixed rules:
 
----
+- Code snippets are exact copies from the repo, linked to the file and line on GitHub.
+- Quizzes test whether you can apply a mechanism, and a wrong answer leads to a simpler follow-up question.
+- Animations start when you scroll to them, and every animation has a static version for reduced-motion settings.
+- Light and dark mode are both supported.
+- The last section lists what was left out and why.
 
-## Quick start
+## Install
 
 ```bash
-# Copy the skill into your Claude Code skills directory
 cp -r codewalk/ ~/.claude/skills/
-
-# Open any project and say:
-# "Turn this into a course"
-# "Walk me through this codebase"
-# "Teach me how this code works"
-# "I'm debugging X — make me a codewalk"
-# "Update my codewalk"  (triggers diff mode)
 ```
 
----
+Then open a project in Claude Code and say one of these:
 
-## Skill structure
+```
+Walk me through this codebase
+Turn this into a walkthrough
+Teach me how this code works
+I'm debugging the login flow, make me a codewalk
+Update my codewalk
+```
+
+The last one runs diff mode.
+
+## What you get
+
+Two files. `my-project.walkthrough.html` is the page. `my-project.walkthrough.json` is the saved state that diff mode reads.
+
+## Skill layout
 
 <p align="center">
-  <img src="assets/tree.png" alt="codewalk skill file structure: SKILL.md plus 8 reference documents" width="580">
+  <img src="assets/tree.png" alt="Skill layout: SKILL.md and eight reference documents" width="520">
 </p>
 
-Eight reference documents, each loaded only when its step in the generation flow calls for it — not front-loaded. `SKILL.md` is the orchestrator; the references are the methodology.
-
----
+`SKILL.md` runs the generation flow. Each reference file is read only at the step that needs it, so the agent is never holding all of them at once.
 
 ## Credit
 
-The core idea — turning a codebase into a single-file interactive HTML course with scroll-based modules, code-to-English translations, animated visualizations, and application-testing quizzes — comes from [codebase-to-course](https://github.com/zarazhangrui/codebase-to-course) by [Zara Zhang](https://x.com/zarazhangrui).
+The core idea, turning a codebase into a single-file interactive HTML page with scroll-based modules, code-to-English translations, animated visualizations, and application-testing quizzes, comes from [codebase-to-course](https://github.com/zarazhangrui/codebase-to-course) by [Zara Zhang](https://x.com/zarazhangrui).
 
-Codewalk is not a fork. It reimplements that idea with five additions: personalized intake, diff mode, a structured metaphor bank, opt-in narration, and branching paths.
-
----
+Codewalk is a reimplementation, not a fork. It adds personalized intake, diff mode, a structured metaphor bank, opt-in narration, and branching paths.
 
 ## License
 

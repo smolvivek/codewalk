@@ -1,53 +1,47 @@
 # Personalization
 
-The same repo should not produce the same course for two different learners. Ask
-before building. Skip a question only if the learner's original request already
-answered it.
+Two readers should not get the same walkthrough of the same repo. Ask before
+building, and skip a question only if the original request already answered it.
 
-## Intake questions (ask as one short batch, not a form)
+## Intake questions
 
-1. **What are you here to do?**
-   - Debug something specific right now
-   - Add or change a feature
-   - Just understand how this works, no immediate task
-   - (free text — take whatever they give you)
+Ask these in one short message, not as a form.
 
-2. **What do you already know?**
-   One open question beats a skill-level dropdown: *"Any of these languages/frameworks
-   already comfortable for you? Anything you'd rather I not re-explain?"* Use the
-   answer to decide, per concept, whether it gets full treatment, a one-line mention,
-   or is skipped with a link to docs instead.
+1. **What are you here to do?** Debug something specific, add or change a feature,
+   or just understand how it works. Take free text too.
+2. **What do you already know?** One open question works better than a skill-level
+   dropdown: "Which of these languages or frameworks are you comfortable with? Is
+   there anything I should not re-explain?" Use the answer to decide, per concept,
+   whether it gets a full module, a one-line mention, or a link to the docs.
+3. **Narration?** Yes or no, default no. See `narration.md`.
+4. **How much time do you have?** A rough budget (10 minutes, 30 minutes, no limit).
+   It sets module count and depth more than it sets which concepts appear.
 
-3. **Narration?** (see `narration.md`) — yes/no, defaults to no.
+If the user only says "turn this into a walkthrough," default to the Orient path,
+no assumed knowledge of the stack, no narration, and a 20-minute budget. Do not
+wait on an unanswered question. Generate with those defaults and state what you
+assumed in one line at the top of the page, with a way to regenerate.
 
-4. **How much time do you have?** — rough budget (10 min / 30 min / no limit) that
-   controls module count and depth more than it controls which concepts are covered.
+## How answers change the build
 
-If the learner just says "turn this into a course" with nothing else, default to:
-Orient path, assume no prior knowledge of the stack, no narration, ~20-minute budget.
-Don't block on an unanswered question — generate with sane defaults and say what you
-assumed in one line at the top of the course, with an easy way to regenerate if the
-assumption was wrong.
+- **Goal sets the branch.** Debugging or a specific task goes to Debug. Adding or
+  changing goes to Extend. Open-ended goes to Orient. See `branching-paths.md`.
+- **Known stack sets concept depth.** For each concept in the trace, decide whether
+  the reader already knows it (one-line mention, then move on) or does not (full
+  module with metaphor, code and English, visualization, and quiz). Do not ask about
+  each concept. Infer from the stated background and from what is idiomatic: someone
+  comfortable in React does not need `useState` explained, but someone who only
+  mentioned Python might.
+- **Time budget sets module count.** When time is short, go broader and shallower on
+  background concepts and keep full depth on whatever the goal requires. Never drop
+  something the goal needs to fit the budget. Say so instead: "There is a queueing
+  system here too. I skipped it because it is outside what you are changing. Ask if
+  you want it covered."
 
-## How answers reshape generation
+## State the assumptions
 
-- **Goal → branch.** Debug/specific task → Debug path. Add/change → Extend path.
-  Open-ended → Orient path. (See SKILL.md "Branching paths.")
-- **Known stack → concept depth.** For each concept the trace touches, classify it
-  as "learner already knows this" (one-line mention + skip) vs. "new to them" (full
-  module: metaphor, code-to-English, visualization, quiz). Don't ask about every
-  concept individually — infer from their stated background plus what's idiomatic
-  to assume (someone comfortable in React doesn't need `useState` explained even if
-  they didn't say so explicitly; someone who only mentioned Python might).
-- **Time budget → module count, not coverage gaps.** If the budget is tight, go
-  broader-shallower on background concepts and keep full depth only on whatever the
-  stated goal directly requires. Never silently drop something the goal needs to fit
-  a time budget — say so instead ("there's a queueing system here too, skipping it
-  since it's outside what you're changing — ask if you want it covered").
+Every walkthrough opens with one plain line giving the assumed goal, background, and
+time budget, and how to change them. It is text, not a settings panel:
 
-## One line of transparency
-
-Every generated course opens with a single line stating what was assumed (goal,
-background, time budget) and how to change it — not a settings panel, just plain
-text: *"Built for: adding a feature, assuming you know JS but not Python, ~20 min.
-Wrong? Tell me and I'll rebuild."*
+> Built for: adding a feature. Assumes you know JS but not Python. About 20 minutes.
+> If that's wrong, tell me and I'll rebuild it.

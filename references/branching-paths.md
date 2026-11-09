@@ -1,165 +1,159 @@
 # Branching paths
 
-Three paths through every course: **Debug**, **Extend**, **Orient**. The branch
-switcher UI is in `interactive-elements.md`. This file specifies what each path
-*teaches differently* — concept selection, ordering, depth, and tone.
+Every walkthrough has three paths: **Debug**, **Extend**, and **Orient**. The switcher
+UI is described in `interactive-elements.md`. This file says what each path teaches
+differently: which concepts, in what order, how deep, and in what tone.
 
-All three paths draw from the same concept map (see `codebase-mapping.md`). The
-difference is which concepts are foregrounded, which are background, and what
-the course is trying to make the learner capable of doing when it's done.
+All three paths draw on the same concept map (see `codebase-mapping.md`). They differ
+in which concepts come first, which sit in the background, and what the reader should
+be able to do at the end.
 
 ## Orient
 
-**The learner's question:** "How does this thing work?"
+**The reader's question:** How does this thing work?
 
-**Goal:** After this course, the learner can explain the system's architecture to
-someone else in plain language, and can predict roughly where a given piece of
-behavior lives in the code.
+**Goal:** The reader can explain the architecture to someone else in plain language
+and can predict roughly where a given behavior lives in the code.
 
-**Concept selection:**
+**Concepts:**
+
 - Include every concept the trace touches. This is the broadest path.
-- Weight toward Boundary, Pipeline, and Broadcast shapes — these are the
-  structural scaffolding a newcomer needs first.
-- Gates and Ledgers get shorter treatment unless they're architecturally central.
+- Weight toward Boundary, Pipeline, and Broadcast shapes. They are the structure a
+  newcomer needs first.
+- Give Gates and Ledgers shorter treatment unless they are central to the design.
 
-**Ordering:** Big picture → zoom in. Start with the highest-level shape (usually
-a Boundary or Pipeline that shows the whole system's flow), then walk through
-each concept in the order that builds understanding, not necessarily execution
-order. End with the concept that ties everything together.
+**Order:** Big picture, then zoom in. Open with the highest-level shape, usually a
+Boundary or Pipeline that shows the whole flow. Then walk through the concepts in the
+order that builds understanding, which may differ from execution order. End with the
+concept that ties the rest together.
 
-**Depth:** Even. No concept gets dramatically more space than another. The
-learner isn't going deep on anything — they're building a mental map.
+**Depth:** Even. No concept gets much more space than another. The reader is building a
+map and is not going deep on any one part.
 
-**Tone:** Tour guide. "Here's what this does and why it's here." Explanatory,
-not prescriptive. Don't tell them what to change; tell them what they're looking
-at.
+**Tone:** Tour guide. "Here is what this does and why it is here." Explain what the
+reader is looking at. Do not tell them what to change.
 
-**Quiz focus:** "Given what you now know about the system, where would you expect
-to find X?" — testing the mental map, not a specific mechanism.
+**Quizzes:** "Given what you now know, where would you expect to find X?" They test the
+mental map and not a specific mechanism.
 
-**What "done" means:** The learner can draw a rough box diagram of the system
-from memory and label each box correctly.
+**Done means:** The reader can sketch a rough box diagram of the system from memory and
+label each box correctly.
 
 ---
 
 ## Debug
 
-**The learner's question:** "Something is broken and I need to find/fix it."
+**The reader's question:** Something is broken and I need to find and fix it.
 
-**Goal:** After this course, the learner can trace a failure from symptom to root
-cause in this codebase, and understands the mechanisms well enough to describe the
-fix (even if they'll use an AI agent to write it).
+**Goal:** The reader can trace a failure from symptom to root cause in this codebase and
+understands the mechanisms well enough to describe the fix, even if an AI agent will
+write it.
 
-**Concept selection:**
-- Start from the symptom (if stated) or from the most failure-prone part of the
-  trace. If the learner said "API returns 500 on this endpoint," start there.
-- **Foreground:** Gates (validation, auth — where things get rejected), Ledgers
-  (state that can get stale or corrupted), Boundaries (where mismatches between
+**Concepts:**
+
+- Start from the symptom if one was given, or from the most failure-prone part of the
+  trace. If the reader said "the API returns 500 on this endpoint," start there.
+- **Foreground** Gates (validation and auth, where things get rejected), Ledgers
+  (state that can go stale or corrupt), and Boundaries (where mismatches between
   systems cause failures).
-- **Background:** Pipelines and Broadcasts get shorter treatment — they matter
-  for understanding flow, but the debugger needs to know *where things break*,
-  not *how things flow when they work*.
-- Cut concepts that are unlikely failure points unless they're in the direct
-  trace from symptom to cause.
+- **Background** Pipelines and Broadcasts. They explain how things flow when they
+  work, and a debugger needs to know where they break.
+- Cut concepts that are unlikely failure points unless they sit on the direct path from
+  symptom to cause.
 
-**Ordering:** Symptom → cause. The first module is "here's what goes wrong,"
-the second is "here's what the code does at that point," and each subsequent
-module traces one step closer to the root. The last module is the mechanism
-that's actually broken (or most likely broken, if the learner hasn't specified
-the exact bug).
+**Order:** Symptom to cause. Module one says what goes wrong. Module two says what the
+code does at that point. Each later module moves one step closer to the root. The last
+module covers the mechanism that is broken, or most likely broken if the reader has not
+given the exact bug.
 
-**Depth:** Uneven on purpose. The failure-relevant concepts get full treatment
-(metaphor, code walkthrough, visualization, quiz). Supporting concepts get
-enough to follow the trace but no more.
+**Depth:** Uneven on purpose. Concepts on the failure path get the full treatment:
+metaphor, code walkthrough, visualization, quiz. Supporting concepts get just enough to
+follow the trace.
 
-**Tone:** Investigator. "Let's trace this." Direct, no wandering. Every module
-earns its place by being one step in the trail from symptom to cause.
+**Tone:** Investigator. "Let's trace this." Direct, with no detours. Every module is one
+step on the trail from symptom to cause.
 
-**Quiz focus:** "This function receives X input. Given the code you just saw,
-what would it return? And what would happen downstream?" — testing whether the
-learner can mentally execute the code, because that's what debugging requires.
+**Quizzes:** "This function receives X. Given the code you just saw, what does it
+return, and what happens downstream?" They test whether the reader can run the code in
+their head, which is what debugging requires.
 
-**What "done" means:** The learner can describe the most likely failure path and
-where to intervene, in enough detail to instruct an AI coding agent to fix it
-without a guessing loop.
+**Done means:** The reader can describe the most likely failure path and where to
+intervene, in enough detail to instruct an AI coding agent to fix it without a guessing
+loop.
 
 ---
 
 ## Extend
 
-**The learner's question:** "I want to add/change something. Where does it go?"
+**The reader's question:** I want to add or change something. Where does it go?
 
-**Goal:** After this course, the learner understands the existing pattern well
-enough to know *where* new code should go, *what* it should plug into, and *what
-it shouldn't touch* — enough to spec the change for an AI agent or write it
-themselves.
+**Goal:** The reader understands the existing pattern well enough to know where new code
+belongs, what it plugs into, and what it should leave alone. That is enough to spec the
+change for an AI agent or write it themselves.
 
-**Concept selection:**
-- Identify the nearest existing feature to what the learner wants to add. That
-  feature's full trace is the core of the course.
-- **Foreground:** The mechanism the learner will be extending or imitating.
-  Whatever shape it is, that shape gets the deepest treatment — because the
-  learner needs to understand the pattern well enough to replicate or modify it.
-- **Also foreground:** Boundaries the new code will cross, and any Gate that
-  the new feature needs to pass through (validation, auth, permissions).
-- **Background:** Everything else in the system that the new feature doesn't
-  touch. One-line mentions, not full modules.
-- **Always include:** The config/routing/registration step — wherever new
-  features "register" themselves in this codebase (a route table, a plugin
-  manifest, a switch/case, an event listener). The learner needs to know where
-  to plug in, not just what to write.
+**Concepts:**
 
-**Ordering:** Existing pattern → where to intervene. The first module shows the
-feature the learner will be imitating or extending, fully traced. Then: what
-it connects to, where it registers, what constraints it operates under. The last
-module is a concrete "here's where your new code goes" pointer.
+- Find the existing feature nearest to what the reader wants to add. Its full trace is
+  the core of the walkthrough.
+- **Foreground** the mechanism the reader will extend or imitate. Whatever shape it is,
+  it gets the deepest treatment, because the reader needs to be able to copy or modify
+  the pattern.
+- **Also foreground** the boundaries the new code will cross and any Gate it must pass
+  through, such as validation, auth, or permissions.
+- **Background** everything the new feature does not touch. One-line mentions, not
+  modules.
+- **Always include** the registration step: wherever new features hook in, whether that
+  is a route table, a plugin manifest, a switch statement, or an event listener. The
+  reader needs to know where to plug in, not only what to write.
 
-**Depth:** Deep on the pattern being extended, shallow on everything else.
+**Order:** Existing pattern, then where to intervene. Module one shows the feature the
+reader will imitate or extend, fully traced. Then cover what it connects to, where it
+registers, and what constraints it works under. The last module is a concrete pointer to
+where the new code goes.
 
-**Tone:** Mentor. "Here's how the existing one works. Here's where yours would
-slot in. Here's what to be careful about." Practical, forward-looking. The
-course anticipates the learner's next step rather than just describing what
-exists.
+**Depth:** Deep on the pattern being extended and shallow on everything else.
 
-**Quiz focus:** "You want to add feature Y. Based on the pattern you just saw,
-which file would you create/modify first, and what function would you call?" —
-testing whether the learner can apply the pattern, not just recognize it.
+**Tone:** Mentor. "Here is how the existing one works. Here is where yours would go.
+Here is what to watch for." Practical and forward-looking. Anticipate the reader's next
+step instead of only describing what exists.
 
-**What "done" means:** The learner can write a 3-5 step plan for their change
-that an AI coding agent could follow without hallucinating the architecture.
+**Quizzes:** "You want to add feature Y. Based on the pattern you just saw, which file
+would you create or change first, and what function would you call?" They test whether
+the reader can apply the pattern and not just recognize it.
+
+**Done means:** The reader can write a 3 to 5 step plan for their change that an AI
+coding agent could follow without inventing an architecture.
 
 ---
 
 ## Shared modules
 
-Some concepts appear in all three paths (or two of three). Don't duplicate them.
-Render the module once in the HTML and include it in all paths that reference it.
-The branch switcher controls which modules are visible/active, but a shared
-module's HTML exists once.
+Some concepts appear in two or all three paths. Do not duplicate them. Render the module
+once in the HTML and include it in each path that uses it. The switcher controls which
+modules are active, and a shared module's HTML exists once.
 
-When a concept appears in multiple paths but at different depths:
-- Write it at the **deepest** level any path needs.
-- For shallower paths, the same module works — extra depth doesn't hurt an Orient
-  learner, and cutting detail for the Extend learner would.
-- Exception: if the Debug path needs a fundamentally different framing of the
-  same concept (symptom-first vs. explanation-first), write it as two modules
-  and assign each to its path. Don't force a shared module to serve two
-  incompatible pedagogical purposes.
+When a concept appears in several paths at different depths:
+
+- Write it at the deepest level any path needs.
+- The shallower paths can use the same module. Extra depth does not hurt an Orient
+  reader, and cutting detail would hurt an Extend reader.
+- Exception: if Debug needs a different framing of the same concept (symptom first
+  versus explanation first), write two modules and assign one to each path. Do not make
+  one shared module serve two incompatible purposes.
 
 ## Default path
 
-If intake didn't produce a clear goal, default to Orient. It's the safest — a
-learner who just said "explain this" gets a full map. From there, switching to
-Debug or Extend is a narrowing move, which is easier than broadening.
+If intake did not produce a clear goal, use Orient. It is the safest choice, since a
+reader who only said "explain this" gets a full map. Switching to Debug or Extend later
+is a narrowing, which is easier than broadening.
 
-## Path switcher behavior
+## Switching paths
 
-See `interactive-elements.md` for the UI spec. Content-side rules:
+See `interactive-elements.md` for the UI. The content rules are:
 
-- Switching paths never resets progress. If the learner read 4/6 modules on
-  Orient and switches to Debug, any module shared between the two paths stays
-  "read." The progress bar recalculates for the new path's module count.
-- The first module of each path should make sense as a starting point even if
-  the learner already read other modules — a brief "you're now in Debug mode,
-  here's what we're looking for" orientation line at the top, not a recap of
-  everything they've already seen.
+- Switching never resets progress. If the reader finished 4 of 6 modules on Orient and
+  switches to Debug, any module shared by both stays marked read, and the progress bar
+  recalculates for the new path's module count.
+- The first module of each path must work as a starting point even if the reader has
+  already read other modules. Put a short note at the top, such as "You're now in Debug
+  mode. Here is what we're looking for." Do not recap what they have already seen.
