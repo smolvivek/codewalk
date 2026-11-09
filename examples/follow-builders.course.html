@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How Follow Builders Works</title>
+<style>
+  :root{
+    --paper:#f3ecdd;
+    --paper-2:#eae0c9;
+    --ink:#231f1a;
+    --ink-soft:#4a4238;
+    --rule:#cabe9f;
+    --press:#a8332a;
+    --press-dim:#c9847c;
+    --panel:#fffdf6;
+    --ok:#3c6b43;
+    --bad:#a8332a;
+    --code-bg:#1f1b15;
+    --code-fg:#eee3c8;
+    --font-head: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+    --font-body: Georgia, "Iowan Old Style", Palatino, serif;
+    --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  :root:not([data-theme="light"]) { }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#1b1812;
+      --paper-2:#211d16;
+      --ink:#ece3cf;
+      --ink-soft:#c3b89f;
+      --rule:#4a4234;
+      --press:#e0776a;
+      --press-dim:#8a4a42;
+      --panel:#242019;
+      --ok:#7fb589;
+      --bad:#e0776a;
+      --code-bg:#0f0d0a;
+      --code-fg:#e8dfc6;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#1b1812; --paper-2:#211d16; --ink:#ece3cf; --ink-soft:#c3b89f;
+    --rule:#4a4234; --press:#e0776a; --press-dim:#8a4a42; --panel:#242019;
+    --ok:#7fb589; --bad:#e0776a; --code-bg:#0f0d0a; --code-fg:#e8dfc6;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:var(--font-body); line-height:1.55;
+    background-image:
+      radial-gradient(var(--rule) 0.5px, transparent 0.5px);
+    background-size:3px 3px;
+    background-attachment:fixed;
+  }
+  .progress{position:fixed; top:0; left:0; height:3px; background:var(--press); z-index:60; width:0%; transition:width .1s linear;}
+  header.topbar{
+    position:sticky; top:0; z-index:50; background:var(--paper);
+    border-bottom:2px solid var(--ink); padding:14px 18px 10px;
+  }
+  .topbar-inner{max-width:880px; margin:0 auto; display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap;}
+  .masthead{font-family:var(--font-head); font-weight:700; font-size:1.3rem; letter-spacing:0.01em;}
+  .masthead small{display:block; font-family:var(--font-mono); font-weight:400; font-size:0.62rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-soft); margin-top:2px;}
+  nav.paths{display:flex; gap:6px; font-family:var(--font-mono); font-size:0.72rem;}
+  nav.paths button{
+    background:var(--panel); border:1px solid var(--ink); color:var(--ink);
+    padding:6px 10px; cursor:pointer; letter-spacing:0.04em; text-transform:uppercase;
+  }
+  nav.paths button.active{background:var(--press); border-color:var(--press); color:var(--paper);}
+  main{max-width:720px; margin:0 auto; padding:0 20px 120px;}
+  .assumptions{
+    font-family:var(--font-mono); font-size:0.78rem; color:var(--ink-soft);
+    border-left:3px solid var(--press-dim); padding:10px 14px; margin:28px 0 8px; background:var(--panel);
+  }
+  .assumptions button{
+    font-family:var(--font-mono); font-size:0.7rem; background:none; border:1px solid var(--rule);
+    color:var(--ink-soft); padding:2px 8px; margin-left:6px; cursor:pointer;
+  }
+  section.module{padding:52px 0 18px; border-top:1px solid var(--rule); scroll-margin-top:90px;}
+  section.module:first-of-type{border-top:none;}
+  .eyebrow{font-family:var(--font-mono); font-size:0.68rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--press); margin-bottom:6px;}
+  h2{font-family:var(--font-head); font-size:1.7rem; margin:0 0 6px; line-height:1.15;}
+  .dek{color:var(--ink-soft); font-style:italic; margin:0 0 20px; font-size:1.02rem;}
+  p{margin:0 0 14px; font-size:1.02rem;}
+  .metaphor{
+    background:var(--panel); border:1px solid var(--rule); padding:14px 16px; margin:16px 0 22px;
+    font-size:0.96rem;
+  }
+  .metaphor .tag{font-family:var(--font-mono); font-size:0.65rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--press); display:block; margin-bottom:4px;}
+  .translate{display:grid; grid-template-columns:1fr 1fr; gap:0; border:1px solid var(--ink); margin:18px 0; background:var(--panel);}
+  @media (max-width:640px){ .translate{grid-template-columns:1fr;} }
+  .translate .code{background:var(--code-bg); color:var(--code-fg); padding:14px; font-family:var(--font-mono); font-size:0.78rem; overflow-x:auto; white-space:pre;}
+  .translate .code .path{display:block; color:#9a8f6f; font-size:0.68rem; margin-bottom:8px; letter-spacing:0.04em;}
+  .translate .eng{padding:14px; font-size:0.92rem; border-left:1px solid var(--rule);}
+  @media (max-width:640px){ .translate .eng{border-left:none; border-top:1px solid var(--rule);} }
+  .translate .eng b{color:var(--press);}
+  .diagram{background:var(--panel); border:1px solid var(--ink); padding:18px 10px; margin:18px 0; text-align:center;}
+  .diagram svg{max-width:100%; height:auto;}
+  .diagram .replay{display:block; margin:10px auto 0; font-family:var(--font-mono); font-size:0.68rem; background:none; border:1px solid var(--rule); color:var(--ink-soft); padding:4px 10px; cursor:pointer;}
+  .quiz{background:var(--paper-2); border:2px solid var(--ink); padding:16px 18px; margin:22px 0;}
+  .quiz .q-eyebrow{font-family:var(--font-mono); font-size:0.65rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--press);}
+  .quiz p.prompt{font-weight:bold; margin:6px 0 12px;}
+  .quiz .opt{
+    display:block; width:100%; text-align:left; background:var(--panel); border:1px solid var(--ink);
+    padding:9px 12px; margin:6px 0; cursor:pointer; font-family:var(--font-body); font-size:0.95rem; color:var(--ink);
+  }
+  .quiz .opt:hover{border-color:var(--press);}
+  .quiz .opt.correct{background:var(--ok); color:var(--paper); border-color:var(--ok);}
+  .quiz .opt.wrong{background:var(--bad); color:var(--paper); border-color:var(--bad);}
+  .quiz .opt[disabled]{cursor:default;}
+  .quiz .feedback{display:none; margin-top:10px; font-size:0.92rem; border-top:1px dashed var(--rule); padding-top:10px;}
+  .quiz .feedback.show{display:block;}
+  .gloss{border-bottom:1px dotted var(--press); cursor:help; position:relative;}
+  .gloss .tip{
+    display:none; position:absolute; bottom:135%; left:0; background:var(--ink); color:var(--paper);
+    font-family:var(--font-mono); font-size:0.72rem; padding:8px 10px; width:230px; z-index:40; line-height:1.4;
+  }
+  .gloss:hover .tip, .gloss:focus .tip{display:block;}
+  .cut-note{font-family:var(--font-mono); font-size:0.78rem; color:var(--ink-soft); border-top:2px solid var(--ink); margin-top:60px; padding:18px 0 40px;}
+  footer.endmark{text-align:center; font-family:var(--font-mono); font-size:0.7rem; color:var(--ink-soft); padding:30px 0 60px;}
+  kbd{font-family:var(--font-mono); border:1px solid var(--rule); padding:1px 5px; font-size:0.75rem;}
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="masthead">How Follow Builders Works<small>a course, generated from zarazhangrui/follow-builders</small></div>
+    <nav class="paths" id="pathNav">
+      <button data-path="debug">Debug</button>
+      <button data-path="extend">Extend</button>
+      <button data-path="orient" class="active">Orient</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <div class="assumptions">
+    Built for: just understanding how this works, no immediate task &mdash; assuming you can
+    read JavaScript but don't know this codebase &mdash; narration off &mdash; about 20 minutes.
+    Wrong? Tell the agent and ask for a rebuild with different assumptions.
+    <button onclick="document.getElementById('pathNav').scrollIntoView({behavior:'smooth'})">change path &uarr;</button>
+  </div>
+
+  <!-- MODULE 0: BIG PICTURE -->
+  <section class="module" id="big-picture" data-paths="orient debug extend">
+    <div class="eyebrow">Module 1 &middot; The shape of the whole thing</div>
+    <h2>One wire service, many local editions</h2>
+    <p class="dek">Before any code: what talks to what, and why it's split the way it is.</p>
+
+    <p>This isn't a website with routes and a database. It's a small pipeline with a hard line
+    drawn through the middle of it: <span class="gloss">one script<span class="tip">generate-feed.js &mdash; runs on a schedule, needs API keys, writes the public feed files.</span></span>
+    does all the expensive, credentialed fetching once a day, centrally. Every user's local
+    script reads the output of that &mdash; plain public JSON &mdash; needing no keys of its own.</p>
+
+    <div class="diagram">
+      <svg id="pipelineSvg" viewBox="0 0 640 170" xmlns="http://www.w3.org/2000/svg">
+        <style>
+          .node{fill:var(--panel); stroke:var(--ink); stroke-width:1.5;}
+          .lbl{font-family:ui-monospace, Menlo, monospace; font-size:10px; fill:var(--ink);}
+          .lbl2{font-family:Georgia, serif; font-size:9px; fill:var(--ink-soft); font-style:italic;}
+          .flow{fill:var(--press);}
+          .arrow{stroke:var(--ink-soft); stroke-width:1.2; marker-end:url(#arrowhead);}
+        </style>
+        <defs>
+          <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="var(--ink-soft)"/>
+          </marker>
+        </defs>
+
+        <rect class="node" x="10" y="20" width="110" height="46" rx="2"/>
+        <text class="lbl" x="18" y="40">generate-feed.js</text>
+        <text class="lbl2" x="18" y="54">daily, needs keys</text>
+
+        <line class="arrow" x1="120" y1="43" x2="168" y2="43"/>
+
+        <rect class="node" x="170" y="20" width="110" height="46" rx="2"/>
+        <text class="lbl" x="178" y="40">feed-*.json</text>
+        <text class="lbl2" x="178" y="54">public, on GitHub</text>
+
+        <line class="arrow" x1="280" y1="43" x2="328" y2="43"/>
+
+        <rect class="node" x="330" y="20" width="130" height="46" rx="2"/>
+        <text class="lbl" x="338" y="40">prepare-digest.js</text>
+        <text class="lbl2" x="338" y="54">per-user, no keys</text>
+
+        <line class="arrow" x1="460" y1="43" x2="508" y2="43"/>
+
+        <rect class="node" x="510" y="20" width="120" height="46" rx="2"/>
+        <text class="lbl" x="518" y="40">the agent</text>
+        <text class="lbl2" x="518" y="54">remixes only</text>
+
+        <line class="arrow" x1="570" y1="66" x2="570" y2="104"/>
+
+        <rect class="node" x="400" y="106" width="230" height="46" rx="2"/>
+        <text class="lbl" x="408" y="126">deliver.js</text>
+        <text class="lbl2" x="408" y="140">telegram / email / stdout</text>
+
+        <circle class="flow" id="dot1" cx="18" cy="43" r="4"/>
+      </svg>
+      <button class="replay" onclick="runPipelineAnim()">&#9654; replay</button>
+    </div>
+
+    <p>Five modules below trace that line left to right, one concept at a time. Each one
+    names the <em>shape</em> of the idea &mdash; a boundary, a ledger, a gate, a lookup chain,
+    a pipeline &mdash; so you can recognize the same shape next time you meet it somewhere else,
+    in a different codebase entirely.</p>
+  </section>
+
+  <!-- MODULE 1: BOUNDARY -->
+  <section class="module" id="boundary" data-paths="orient debug extend">
+    <div class="eyebrow">Module 2 &middot; Shape: Boundary</div>
+    <h2>The wire service never touches your machine</h2>
+    <p class="dek">src/generate-feed.js vs scripts/prepare-digest.js</p>
+
+    <div class="metaphor">
+      <span class="tag">domain metaphor</span>
+      Think of <code>generate-feed.js</code> as the wire service &mdash; the one newsroom
+      with a <span class="gloss">press pass<span class="tip">An API key: a credential that proves you're allowed to call a service, rate-limited and tied to one account.</span></span>
+      that calls reporters directly (the X API, podcast RSS feeds) and files one story a day.
+      Every subscribing local paper (your own machine, running <code>prepare-digest.js</code>) just
+      pulls the wire copy off a public feed &mdash; no press pass required, because the wire
+      service already did the credentialed part.
+    </div>
+
+    <div class="translate">
+      <div class="code"><span class="path">scripts/generate-feed.js</span>const xBearerToken = process.env.X_BEARER_TOKEN;
+const pod2txtKey = process.env.POD2TXT_API_KEY;
+
+if (runTweets &amp;&amp; !xBearerToken) {
+  console.error("X_BEARER_TOKEN not set");
+  process.exit(1);
+}</div>
+      <div class="eng">This is the <b>only</b> place in the whole project that checks for
+      an API key. It runs once a day, centrally, as a GitHub Actions job &mdash; not on any
+      individual user's machine. If the key is missing, it refuses to run at all rather than
+      produce a half-empty feed.</div>
+    </div>
+
+    <div class="translate">
+      <div class="code"><span class="path">scripts/prepare-digest.js</span>const FEED_X_URL =
+  'https://raw.githubusercontent.com/zarazhangrui/' +
+  'follow-builders/main/feed-x.json';
+
+const [feedX, feedPodcasts, feedBlogs] =
+  await Promise.all([
+    fetchJSON(FEED_X_URL), ...
+  ]);</div>
+      <div class="eng">This runs on <b>every user's own machine</b>, with zero credentials.
+      It just fetches three public JSON files off GitHub &mdash; the output the wire service
+      already published. That's the whole reason a boundary like this exists: the expensive,
+      rate-limited, credentialed work happens once, centrally; the cheap part happens
+      everywhere, for free.</div>
+    </div>
+
+    <div class="quiz">
+      <div class="q-eyebrow">Check yourself</div>
+      <p class="prompt">A user asks you to add their favorite AI researcher to the X sources
+      they're tracking. Where does that change actually need to go?</p>
+      <button class="opt" data-correct="false">Add their handle to <code>feed-x.json</code> directly</button>
+      <button class="opt" data-correct="false">Set an X_BEARER_TOKEN in their own .env file and edit <code>config/default-sources.json</code> locally</button>
+      <button class="opt" data-correct="true">Tell them it's centrally curated &mdash; point them to opening an issue on the repo instead</button>
+      <div class="feedback"></div>
+    </div>
+  </section>
+
+  <!-- MODULE 2: LEDGER -->
+  <section class="module" id="ledger" data-paths="orient debug">
+    <div class="eyebrow">Module 3 &middot; Shape: Ledger</div>
+    <h2>Nothing gets wired twice</h2>
+    <p class="dek">state-feed.json</p>
+
+    <div class="metaphor">
+      <span class="tag">domain metaphor</span>
+      Every wire service keeps a <span class="gloss">circulation log<span class="tip">An append-only record used to reconstruct or check past state &mdash; here, which tweet/episode/article IDs have already gone out.</span></span>
+      of story IDs it has already transmitted, so the same story never gets sent to a paper
+      twice. That log is <code>state-feed.json</code>: three maps &mdash; seen tweets, seen
+      videos, seen articles &mdash; each entry just an ID pointing at the timestamp it was
+      first seen.
+    </div>
+
+    <div class="translate">
+      <div class="code"><span class="path">scripts/generate-feed.js</span>for (const t of allTweets) {
+  if (state.seenTweets[t.id]) continue; // dedup
+  if (newTweets.length >= MAX_TWEETS_PER_USER)
+    break;
+  newTweets.push({ id: t.id, ... });
+  state.seenTweets[t.id] = Date.now();
+}</div>
+      <div class="eng">For every tweet the X API returns, the very first check is: is this ID
+      already in the ledger? If so, skip it &mdash; it already went out in a previous run.
+      New ones get added to the ledger the moment they're selected, before anything can go
+      wrong downstream.</div>
+    </div>
+
+    <div class="diagram">
+      <svg id="ledgerSvg" viewBox="0 0 560 90" xmlns="http://www.w3.org/2000/svg">
+        <style>
+          .lnode{fill:var(--panel); stroke:var(--ink); stroke-width:1.2;}
+          .lseen{fill:var(--press-dim); stroke:var(--press);}
+          .llbl{font-family:ui-monospace, monospace; font-size:9px; fill:var(--ink);}
+        </style>
+        <text class="llbl" x="10" y="16">incoming tweet IDs:</text>
+        <rect class="lnode" id="tA" x="10" y="26" width="60" height="26"/><text class="llbl" x="22" y="43">#101</text>
+        <rect class="lnode" id="tB" x="80" y="26" width="60" height="26"/><text class="llbl" x="92" y="43">#102</text>
+        <rect class="lnode" id="tC" x="150" y="26" width="60" height="26"/><text class="llbl" x="162" y="43">#103</text>
+        <text class="llbl" x="240" y="43">ledger has:</text>
+        <rect class="lnode lseen" x="330" y="26" width="60" height="26"/><text class="llbl" x="342" y="43" fill="var(--paper)">#101</text>
+        <rect class="lnode lseen" x="400" y="26" width="60" height="26"/><text class="llbl" x="412" y="43" fill="var(--paper)">#099</text>
+        <text class="llbl" id="ledgerResult" x="10" y="78">&#8594; result: skip #101 (seen), keep #102 &amp; #103 (new)</text>
+      </svg>
+      <button class="replay" onclick="runLedgerAnim()">&#9654; replay</button>
+    </div>
+
+    <div class="quiz">
+      <div class="q-eyebrow">Check yourself</div>
+      <p class="prompt">A tweet appeared in yesterday's digest. The X API returns that exact same
+      tweet again today (it's still within the 24-hour lookback window). What keeps it out of
+      today's digest?</p>
+      <button class="opt" data-correct="false">The 24-hour lookback window automatically expires it</button>
+      <button class="opt" data-correct="true">Its tweet ID is already a key in <code>state.seenTweets</code>, so it's skipped before it's ever added to the feed</button>
+      <button class="opt" data-correct="false">The LLM notices it already wrote about this tweet and skips it</button>
+      <div class="feedback"></div>
+    </div>
+  </section>
+
+  <!-- MODULE 3: GATE -->
+  <section class="module" id="gate" data-paths="orient debug extend">
+    <div class="eyebrow">Module 4 &middot; Shape: Gate</div>
+    <h2>The editor never calls a source directly</h2>
+    <p class="dek">The agent's instructions in SKILL.md, Content Delivery &rarr; Step 4</p>
+
+    <div class="metaphor">
+      <span class="tag">domain metaphor</span>
+      A wire editor at the local paper doesn't get to phone up a source and ask follow-up
+      questions &mdash; they work <em>only</em> from the wire copy in front of them. If a
+      fact isn't on the page, it doesn't go in the story. That's a deliberate gate, and it's
+      the single most important design decision in this codebase: it's what stops the LLM
+      from <span class="gloss">fabricating<span class="tip">Hallucination &mdash; an LLM generating plausible-sounding content that wasn't actually in its source material.</span></span>
+      a quote, a launch, or a URL that doesn't exist.
+    </div>
+
+    <div class="translate">
+      <div class="code"><span class="path">SKILL.md</span>**Your ONLY job is to remix the content
+from the JSON.** Do NOT fetch anything
+from the web, visit any URLs, or call
+any APIs. Everything is in the JSON.
+
+**ABSOLUTE RULES:**
+- NEVER invent or fabricate content.
+- Every piece of content MUST have
+  its URL. No URL = do not include.</div>
+      <div class="eng">This isn't a suggestion, it's the gate itself: the agent is told, in
+      plain language, that its whole job is downstream of a script that already did every
+      network call. No URL attached to a claim means that claim doesn't make it into the
+      digest &mdash; full stop, no exceptions written in.</div>
+    </div>
+
+    <div class="quiz">
+      <div class="q-eyebrow">Check yourself</div>
+      <p class="prompt">You're debugging a digest where a builder is credited with a product
+      launch that, it turns out, never happened. The feed JSON for that builder's tweets
+      doesn't actually mention a launch. What's the most likely cause?</p>
+      <button class="opt" data-correct="false">The X API returned a tweet with the wrong <code>created_at</code> field</button>
+      <button class="opt" data-correct="true">The agent didn't follow the no-fabrication rule and invented a tweet that was never in the JSON</button>
+      <button class="opt" data-correct="false"><code>state-feed.json</code> wasn't pruned and served a 7-day-old tweet as new</button>
+      <div class="feedback"></div>
+    </div>
+  </section>
+
+  <!-- MODULE 4: LOOKUP CHAIN -->
+  <section class="module" id="lookup" data-paths="orient extend">
+    <div class="eyebrow">Module 5 &middot; Shape: Lookup chain</div>
+    <h2>Your style notes beat the house style</h2>
+    <p class="dek">prepare-digest.js, the prompt-loading loop</p>
+
+    <div class="metaphor">
+      <span class="tag">domain metaphor</span>
+      Three places to find today's style guide, checked in order: your own handwritten notes
+      pinned above your desk (did you personalize it yourself?), the wire service's current
+      style memo (fresh off GitHub), or the dusty backup copy that shipped with the newsroom's
+      software in case the network's down. First one found wins.
+    </div>
+
+    <div class="translate">
+      <div class="code"><span class="path">scripts/prepare-digest.js</span>if (existsSync(userPath)) {
+  prompts[key] = await readFile(userPath);
+  continue; // 1. user's own copy
+}
+const remote = await fetchText(url);
+if (remote) {
+  prompts[key] = remote;
+  continue; // 2. latest from GitHub
+}
+if (existsSync(localPath)) {
+  prompts[key] = await readFile(localPath);
+  // 3. shipped fallback
+}</div>
+      <div class="eng">Three tries, in priority order, for <em>each</em> prompt file
+      separately. A user who's customized one prompt (say, "make tweet summaries shorter")
+      keeps that customization forever &mdash; central updates to the other, un-customized
+      prompts still reach them normally.</div>
+    </div>
+
+    <div class="quiz">
+      <div class="q-eyebrow">Check yourself</div>
+      <p class="prompt">A user says "make my summaries shorter" and you want that to stick
+      around even after the project's central prompts get updated next month. What do you
+      actually do?</p>
+      <button class="opt" data-correct="false">Edit <code>prompts/summarize-tweets.md</code> in the repo directly</button>
+      <button class="opt" data-correct="true">Copy that file to <code>~/.follow-builders/prompts/</code> and edit the copy there</button>
+      <button class="opt" data-correct="false">Add a new field to <code>config.json</code> called <code>summaryLength</code></button>
+      <div class="feedback"></div>
+    </div>
+  </section>
+
+  <!-- MODULE 5: PIPELINE/GATE -->
+  <section class="module" id="delivery" data-paths="orient extend">
+    <div class="eyebrow">Module 6 &middot; Shape: Pipeline</div>
+    <h2>Same story, three presses</h2>
+    <p class="dek">scripts/deliver.js</p>
+
+    <div class="metaphor">
+      <span class="tag">domain metaphor</span>
+      One finished story, three different presses it can run through depending on how the
+      reader wants it &mdash; the Telegram press, which has to cut long runs into
+      <span class="gloss">4,000-character plates<span class="tip">Telegram's API rejects any single message over 4096 characters, so long digests get split and sent as several messages.</span></span>;
+      the email press, which doesn't; or just handing the galley proof straight to whoever's
+      standing at the machine (stdout, the default).
+    </div>
+
+    <div class="diagram">
+      <svg viewBox="0 0 560 110" xmlns="http://www.w3.org/2000/svg">
+        <style>
+          .dn{fill:var(--panel); stroke:var(--ink); stroke-width:1.2;}
+          .dl{font-family:ui-monospace, monospace; font-size:10px; fill:var(--ink);}
+          .da{stroke:var(--ink-soft); stroke-width:1.2; marker-end:url(#ah2);}
+        </style>
+        <defs><marker id="ah2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--ink-soft)"/></marker></defs>
+        <rect class="dn" x="10" y="42" width="110" height="30"/><text class="dl" x="18" y="61">digest text</text>
+        <line class="da" x1="120" y1="40" x2="190" y2="20"/>
+        <line class="da" x1="120" y1="57" x2="190" y2="57"/>
+        <line class="da" x1="120" y1="74" x2="190" y2="94"/>
+        <rect class="dn" x="195" y="6" width="150" height="28"/><text class="dl" x="205" y="25">telegram (chunked, 4k)</text>
+        <rect class="dn" x="195" y="43" width="150" height="28"/><text class="dl" x="205" y="62">email (resend api)</text>
+        <rect class="dn" x="195" y="80" width="150" height="28"/><text class="dl" x="205" y="99">stdout (default)</text>
+      </svg>
+    </div>
+
+    <div class="translate">
+      <div class="code"><span class="path">scripts/deliver.js</span>const MAX_LEN = 4000;
+while (remaining.length > 0) {
+  if (remaining.length <= MAX_LEN) {
+    chunks.push(remaining); break;
+  }
+  let splitAt = remaining.lastIndexOf('\n', MAX_LEN);
+  if (splitAt < MAX_LEN * 0.5) splitAt = MAX_LEN;
+  chunks.push(remaining.slice(0, splitAt));
+  remaining = remaining.slice(splitAt);
+}</div>
+      <div class="eng">It tries to split on a newline near the limit, so a chunk doesn't cut
+      off mid-sentence &mdash; but if the nearest newline is too far back (less than half the
+      max length), it gives up on finding a clean break and just cuts at the hard limit
+      instead.</div>
+    </div>
+
+    <div class="quiz">
+      <div class="q-eyebrow">Check yourself</div>
+      <p class="prompt">A user switches their delivery method from "stdout" to "telegram" but
+      never ran the BotFather setup steps. What actually happens when their next digest runs?</p>
+      <button class="opt" data-correct="false">It silently falls back to stdout</button>
+      <button class="opt" data-correct="true"><code>deliver.js</code> throws, because <code>TELEGRAM_BOT_TOKEN</code> isn't in <code>.env</code></button>
+      <button class="opt" data-correct="false">It queues the digest and retries every hour until a token appears</button>
+      <div class="feedback"></div>
+    </div>
+  </section>
+
+  <div class="cut-note">
+    Left out of this course on purpose, to fit a ~20 minute budget and an orientation goal:
+    the YouTube title-matching heuristic in <code>generate-feed.js</code> (token-overlap
+    scoring to find the right video URL for a podcast episode), the HTML-scraping parsers
+    for the two blog sources, and the OpenClaw-specific cron wiring in SKILL.md. Ask and
+    any of those can become their own module.
+  </div>
+
+  <footer class="endmark">&mdash; end of course &mdash; <kbd>&larr;</kbd> <kbd>&rarr;</kbd> or <kbd>space</kbd> to move between modules &mdash;</footer>
+
+</main>
+
+<script type="application/json" id="narration-sync">{"modules": [], "narration": "off for this run — see references/narration.md to opt in"}</script>
+
+<script>
+(function(){
+  // progress bar
+  const bar = document.getElementById('progress');
+  function updateProgress(){
+    const h = document.documentElement;
+    const scrolled = (h.scrollTop) / ((h.scrollHeight - h.clientHeight) || 1);
+    bar.style.width = (scrolled*100).toFixed(1) + '%';
+  }
+  document.addEventListener('scroll', updateProgress, {passive:true});
+  updateProgress();
+
+  // keyboard nav between modules
+  const mods = Array.from(document.querySelectorAll('section.module'));
+  function currentIndex(){
+    let idx = 0, best = -Infinity;
+    mods.forEach((m,i)=>{
+      const r = m.getBoundingClientRect();
+      if (r.top <= 120 && r.top > best){ best = r.top; idx = i; }
+    });
+    return idx;
+  }
+  document.addEventListener('keydown', (e)=>{
+    if (['ArrowDown','ArrowRight',' '].includes(e.key)){
+      e.preventDefault();
+      const i = Math.min(currentIndex()+1, mods.length-1);
+      mods[i].scrollIntoView({behavior:'smooth', block:'start'});
+    } else if (['ArrowUp','ArrowLeft'].includes(e.key)){
+      e.preventDefault();
+      const i = Math.max(currentIndex()-1, 0);
+      mods[i].scrollIntoView({behavior:'smooth', block:'start'});
+    }
+  });
+
+  // branch switcher — dims modules not tagged with the chosen path,
+  // jumps to the first one that is. shared modules just render once.
+  const btns = document.querySelectorAll('nav.paths button');
+  btns.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      btns.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const path = btn.dataset.path;
+      let firstMatch = null;
+      mods.forEach(m=>{
+        const paths = (m.dataset.paths||'').split(' ');
+        const on = paths.includes(path);
+        m.style.opacity = on ? '1' : '0.38';
+        if (on && !firstMatch) firstMatch = m;
+      });
+      if (firstMatch) firstMatch.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  });
+
+  // quizzes
+  document.querySelectorAll('.quiz').forEach(q=>{
+    const opts = q.querySelectorAll('.opt');
+    const fb = q.querySelector('.feedback');
+    opts.forEach(opt=>{
+      opt.addEventListener('click', ()=>{
+        if (opt.disabled) return;
+        const correct = opt.dataset.correct === 'true';
+        opts.forEach(o=>o.disabled = true);
+        opt.classList.add(correct ? 'correct' : 'wrong');
+        if (!correct){
+          const rightOne = Array.from(opts).find(o=>o.dataset.correct==='true');
+          if (rightOne) rightOne.classList.add('correct');
+        }
+        fb.textContent = correct
+          ? 'Right — that\'s the mechanism. ' + (opt.dataset.why || '')
+          : 'Not quite — see the highlighted answer above, and re-read the code panel if it\'s not clicking yet.';
+        fb.classList.add('show');
+      });
+    });
+  });
+
+  // pipeline animation (module 1)
+  window.runPipelineAnim = function(){
+    const dot = document.getElementById('dot1');
+    if (!dot) return;
+    const stops = [18, 178, 338, 518, 570];
+    const ys    = [43, 43, 43, 43, 43];
+    let i = 0;
+    dot.setAttribute('cy', 43);
+    const stepX = [18,178,338,518,570];
+    const stepY = [43,43,43,43,129];
+    function step(){
+      if (i >= stepX.length) return;
+      dot.setAttribute('cx', stepX[i]);
+      dot.setAttribute('cy', stepY[i]);
+      i++;
+      setTimeout(step, 650);
+    }
+    step();
+  };
+  setTimeout(()=>{ if(window.runPipelineAnim) runPipelineAnim(); }, 400);
+
+  // ledger animation (module 3)
+  window.runLedgerAnim = function(){
+    const a = document.getElementById('tA');
+    const res = document.getElementById('ledgerResult');
+    if (!a || !res) return;
+    a.setAttribute('fill', 'var(--press-dim)');
+    res.textContent = '… checking #101 against the ledger …';
+    setTimeout(()=>{
+      a.setAttribute('fill', 'var(--bad)');
+      res.textContent = '→ #101 found in ledger — skipped';
+    }, 500);
+    setTimeout(()=>{
+      res.textContent = '→ result: skip #101 (seen), keep #102 & #103 (new)';
+    }, 1400);
+  };
+  setTimeout(()=>{ if(window.runLedgerAnim) runLedgerAnim(); }, 1200);
+})();
+</script>
+
+</body>
+</html>
