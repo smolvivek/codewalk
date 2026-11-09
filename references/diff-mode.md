@@ -32,13 +32,40 @@ time, without re-reading the whole repo from scratch.
 If the repo has no git history, hash the traced files' contents instead of using a
 commit SHA — still enough to detect "nothing changed" vs. "something changed."
 
-`quiz_results` records pass/miss per concept id, taken from what the learner actually
-clicked in the HTML (read it out of the page before regenerating, if the harness can
-access the previous file — otherwise ask the learner which modules felt shaky). A
-missed concept gets re-tested in the addendum even if its code didn't change at
+`quiz_results` records pass/miss per concept id. Since the HTML is a static file
+with no server, the course writes quiz state to `localStorage` as the learner
+answers (key: `codewalk-quiz-{repo-name}`), and also embeds a "Copy my progress"
+button in the course footer that copies the full quiz_results JSON object to the
+clipboard — one click, plain text, pasteable.
+
+When the agent runs diff mode:
+1. **Best case — the agent can read the HTML file.** The course embeds a
+   `<script type="application/json" id="quiz-state">` block that the page's JS
+   updates on each answer. If the agent has access to the saved HTML file (i.e.
+   the learner saved after completing quizzes, or the browser cached the updated
+   DOM), read quiz_results directly from that block.
+2. **Fallback — ask the learner.** If the embedded state is empty or the agent
+   can't access the file, ask: "Which modules felt solid and which felt shaky?"
+   Two to three words per module is enough to reconstruct pass/miss. Don't make
+   the learner re-take a quiz — they already did the work.
+3. **Clipboard paste.** If the learner used "Copy my progress," they can paste
+   it directly when asked. The agent parses the JSON and populates quiz_results.
+
+A missed concept gets re-tested in the addendum even if its code didn't change at
 all — the diff that matters isn't only in the repo, it's between what the learner
 has demonstrated and what the course has covered. A concept marked "passed" is left
 alone unless the diff shows its underlying code actually changed.
+
+### Implementation in the HTML
+
+The page JS must:
+- On each quiz answer, write `{conceptId: "passed"|"missed"}` to both
+  `localStorage` and the embedded `#quiz-state` JSON block.
+- Wrap all `localStorage` access in try/catch (private browsing, storage full).
+- On page load, restore quiz state from `localStorage` if available (so
+  returning to the page shows which quizzes were already completed).
+- The "Copy my progress" button in the footer serializes the current
+  quiz_results object as formatted JSON and calls `navigator.clipboard.writeText`.
 
 ## On a new request against an existing state file
 

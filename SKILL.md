@@ -1,128 +1,138 @@
 ---
-name: fieldguide
-description: Turn any codebase into a personal, branching, narrated interactive HTML course. Use when the user says "turn this into a course," "explain this codebase interactively," "teach me how this code works," "make me a fieldguide for this," or similar.
+name: codewalk
+description: Turn any codebase into a personal, branching, narrated interactive HTML course. Use when the user says "turn this into a course," "walk me through this codebase," "teach me how this code works," "make me a codewalk," or similar.
 ---
 
-# Fieldguide
+# Generation flow
 
-Point this skill at a codebase. It produces a single self-contained HTML file that
-teaches a specific learner, with a specific goal, how the code actually works — by
-tracing what happens when the app is used, not by lecturing at them.
+Follow these steps in order. Each step references a file in `references/` — read
+it before executing that step.
 
-Every codebase has a shape before it has a syntax. A fieldguide teaches the shape
-first — what's a gate, what's a ledger, what's a pipeline — then lets the syntax
-hang off something the learner can already picture, in terms drawn from the
-codebase's own world, not a generic default.
+## 1. Intake
 
-This builds on the idea and design philosophy of
+Read `references/personalization.md`. Ask the four intake questions as one short
+batch. If the user's original request already answered some, skip those. If they
+say nothing, default to Orient / no prior knowledge / no narration / 20 min and
+state what you assumed in one line.
+
+## 2. Check for previous course
+
+Look for a `*.course.json` sidecar next to any existing `*.course.html` for this
+repo. If found, read `references/diff-mode.md` and follow the diff protocol
+instead of continuing to step 3. If not found, continue.
+
+## 3. Map the codebase
+
+Read `references/codebase-mapping.md`. Find the entry point, trace one real user
+action end-to-end, identify 5-9 concepts. Attach a shape category to each concept
+as you go (see step 5). The learner's stated goal from intake determines which
+action to trace and which concepts to foreground.
+
+## 4. Route into a branch
+
+Read `references/branching-paths.md`. Based on the learner's goal:
+- "Debug" / fixing something → Debug path
+- "Add" / "change" / building something → Extend path
+- Open-ended / "just understand" → Orient path (default)
+
+The path determines concept ordering, depth per concept, and tone. Follow the
+spec in branching-paths.md — don't default to Orient ordering for all three.
+
+## 5. Classify and draw metaphors
+
+Read `references/metaphor-bank.md`. For each concept in the map:
+1. Classify its shape (Gate, Queue, Cache, Broadcast, Lookup, Pipeline,
+   Boundary, Ledger, Scheduler — or mint a new one).
+2. Pick a surface metaphor from the codebase's own domain.
+3. Check against metaphors already used in this course — no repeats at the
+   surface level within one course.
+
+## 6. Build the HTML
+
+Read `references/design-system.md` and `references/interactive-elements.md`.
+Build one self-contained HTML file:
+
+- Inline all CSS and JS. No external requests. No CDN. Works offline.
+- Domain-matched palette and typography — not a generic theme.
+- Scroll-based modules, one per concept, in the order the branch dictates.
+- Every module needs: a shape icon, a metaphor block, a code↔English
+  translation with real code linked to the source, and either a visualization
+  or a quiz (most modules should have both).
+- Use at least two of the three animation patterns (data flow, component
+  conversation, architecture build-up). Wire all animations to
+  IntersectionObserver — never autoplay on page load.
+- Quiz wrong answers trigger a simpler follow-up question (see
+  interactive-elements.md), not just an answer reveal.
+- Quiz answers write state to both localStorage and an embedded
+  `<script type="application/json" id="quiz-state">` block (see diff-mode.md).
+- Include a "Copy my progress" button in the footer.
+- Branch switcher in the top bar: Debug / Extend / Orient.
+- End with a "What was left out" section naming cut concepts and why.
+- File path above each code snippet links to the exact GitHub blob URL with
+  line anchors when the repo has a remote.
+
+## 7. Narration (optional)
+
+If the learner opted in at intake, read `references/narration.md`. Write the
+script and sync map. Embed both in the HTML as JSON. Add a collapsible
+"Narration" toggle per module for reading the script when no audio is wired up.
+
+## 8. Save course state
+
+Write the `.course.json` sidecar next to the HTML. Schema is in
+`references/diff-mode.md`. Include: repo snapshot (commit/hash, entry points,
+concepts covered with file lists), learner profile, empty quiz_results object
+(populated by the HTML as the learner answers).
+
+## 9. Hand back
+
+Tell the user where the file is and roughly how long it takes to go through.
+Don't summarize the course contents — the course does that itself.
+
+---
+
+# Rules
+
+- **One HTML file.** No build step. No separate CSS/JS files. Double-click to open.
+- **Original code only.** Every code snippet is an exact, unmodified copy from the
+  repo. Never simplify, shorten, or pseudocode a real snippet.
+- **50%+ visual per screen.** If it could be a diagram, animation, or interactive
+  element, it should not be a paragraph.
+- **Quizzes test application, not recall.** No "what does X stand for" questions.
+- **No recycled metaphors.** Enforced by shape classification. Never use "bouncer
+  for auth," "librarian for lookup," "post office for messaging," or "traffic cop
+  for routing."
+- **Teach to the goal, not the map.** The course covers what the learner's stated
+  goal needs. Say what was cut and why.
+- **prefers-reduced-motion.** Every animation has a static fallback.
+- **Light and dark mode.** CSS custom properties at `:root`, redefined under
+  `@media (prefers-color-scheme: dark)`.
+
+---
+
+# Reference files
+
+Read each one when the step above says to — don't front-load all of them.
+
+| File | Covers |
+|---|---|
+| `references/personalization.md` | Intake questions, defaults, how answers reshape generation |
+| `references/diff-mode.md` | Course state JSON schema, change classification, addendum rules, quiz state persistence |
+| `references/codebase-mapping.md` | Finding entry points, tracing actions, selecting and cutting concepts |
+| `references/branching-paths.md` | What Debug/Extend/Orient teach differently — ordering, depth, tone, quiz focus |
+| `references/metaphor-bank.md` | Shape taxonomy, domain-flavor guidance, no-repeat enforcement, retired clichés |
+| `references/design-system.md` | Palette, typography, layout, motion, technical constraints |
+| `references/interactive-elements.md` | Quizzes, animations, shape icons, code blocks, glossary, branch switcher UI |
+| `references/narration.md` | Script style, sync map format, degradation without audio |
+
+---
+
+# Attribution
+
+The core idea — turning a codebase into a single-file interactive HTML course
+with scroll-based modules, code-to-English translations, animated visualizations,
+and application-testing quizzes — comes from
 [codebase-to-course](https://github.com/zarazhangrui/codebase-to-course) by
-[Zara Zhang](https://x.com/zarazhangrui) — scroll-based modules, code-to-plain-English
-translation, "build first, understand later," and "quizzes test doing, not knowing"
-are hers, reimplemented here with credit. Five things are added on top: it asks who
-it's for before it builds, it can update instead of rebuild, its metaphors come from
-a structured system instead of being invented ad hoc each time, it can narrate
-itself, and it branches by what the learner is actually there to do.
-
-## Who this is for
-
-"Vibe coders" — people who build or inherit software by instructing AI coding tools
-in natural language, without a traditional CS education. They've got something
-working but don't know *how* it works under the hood, and they're not trying to
-become software engineers. They want coding as a superpower: steer AI tools better,
-catch hallucinated or bad code, break out of bug loops, talk to engineers without
-feeling lost.
-
-## Overall flow
-
-1. **Intake** — ask the learner who they are and what they're here for (see
-   `references/personalization.md`). Skip only if the request already answered it.
-2. **Check for a previous fieldguide** — if one exists for this repo (a
-   `*.course.json` sidecar), offer diff mode instead of a full rebuild (see
-   `references/diff-mode.md`).
-3. **Map the codebase** — find the entry point, trace one real user action
-   end-to-end, identify the 5-9 concepts that action touches. Cover what the
-   learner's stated goal needs, not everything that exists.
-4. **Pick the branch** — route into Debug / Extend / Orient.
-5. **Classify and draw metaphors** — for each concept, classify its shape first,
-   then pull or mint a metaphor from the bank (see `references/metaphor-bank.md`).
-   Never reuse a metaphor within one fieldguide.
-6. **Write it** — build the single HTML file per `references/design-system.md` and
-   `references/interactive-elements.md`. Use more than one animation pattern.
-7. **Optionally script narration** — if opted in, write it per `references/narration.md`.
-8. **Save course state**, including quiz results format, for next time.
-9. **Hand it back** — where the file is, roughly how long it takes. The fieldguide
-   speaks for itself; don't narrate what's inside it.
-
-## What it keeps from the original
-
-Single HTML file. No dependencies, no build step, works offline.
-
-- Scroll-based modules, progress tracking, keyboard navigation.
-- Code ↔ plain-English translations — real, unmodified code next to its meaning.
-- Animated visualizations tracing real mechanism, not decoration.
-- Quizzes that test application, never recall.
-- Glossary tooltips, one definition per term.
-- A distinctive visual identity drawn from the codebase's own domain — never the
-  default purple-gradient AI look.
-
-## What's added
-
-1. **Personalization** — intake before generation. Goal, known stack, and time
-   budget each reshape what gets built, not just how it's worded.
-2. **Diff mode** — a returning learner gets a short "what changed and why"
-   addendum, not a full regenerate, and missed quiz concepts get re-tested even
-   when the underlying code didn't change.
-3. **A structured metaphor bank** — metaphors classified by shape (gate, ledger,
-   pipeline, queue, cache, broadcast, lookup, boundary, scheduler) before a
-   surface metaphor is picked, so "never repeat a metaphor" is an enforced system
-   and the shape itself becomes something the learner starts recognizing across
-   codebases, not just within one.
-4. **Narration** — opt-in script written for the ear, synced to scroll position.
-5. **Branching paths** — Debug / Extend / Orient, so the course teaches toward
-   what the learner came to do, not a fixed tour.
-
-## How to use
-
-Copy this folder into `~/.claude/skills/`, open a project, and say any of:
-
-- "Turn this into a course"
-- "Make me a fieldguide for this"
-- "Explain this codebase interactively"
-- "Teach me how this code works"
-- "Update my fieldguide" (triggers diff mode)
-
-## Design philosophy
-
-**Build first, understand later.** Build something → experience it working → now
-understand how it works.
-
-**Show, don't tell.** Every screen at least 50% visual. If it can be a diagram,
-animation, or interactive element, it shouldn't be a paragraph.
-
-**Quizzes test doing, not knowing**, with a real second attempt on a wrong answer,
-not just an answer key.
-
-**No recycled metaphors** — enforced by shape classification, not just a rule.
-
-**Original code only.** Snippets are exact copies, linked to the real file and line.
-
-**Teach to the goal, not the map.** A fieldguide is not obligated to explain the
-whole codebase — it's obligated to make the learner capable of what they came to
-do. Say what was cut and why, so it reads as selective, not incomplete.
-
-## Structure
-
-```
-fieldguide/
-├── SKILL.md
-├── examples/
-│   └── follow-builders.course.html   # a real fieldguide, generated against
-│                                       # zarazhangrui/follow-builders
-└── references/
-    ├── design-system.md
-    ├── interactive-elements.md
-    ├── metaphor-bank.md
-    ├── personalization.md
-    ├── diff-mode.md
-    └── narration.md
-```
+[Zara Zhang](https://x.com/zarazhangrui). This skill reimplements that idea
+with five additions: personalized intake, diff mode, a structured metaphor bank,
+opt-in narration, and branching paths.
